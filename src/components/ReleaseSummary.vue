@@ -10,7 +10,7 @@
             <div class="content has-text-left">
                 <ul class="mt-1">
                     <li>
-                        {{ releases.length == 1 ? 'One releases' : (releases.length + ' releases') }} loaded
+                        {{ releases.length == 1 ? 'One release' : (releases.length + ' releases') }} loaded
                     </li>
                     <li v-if="releases.some(r => r.assets.length > 0)">
                         {{ totalDownloads() }} total downloads
