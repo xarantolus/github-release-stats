@@ -11,7 +11,7 @@
                     <li>
                         {{ releases.length == 1 ? 'One releases' : (releases.length + ' releases') }} loaded
                     </li>
-                    <li v-if="allReleasesHaveAllAssets()">
+                    <li v-if="releases.some(r => r.assets.length > 0)">
                         {{ totalDownloads() }} total downloads
                     </li>
                 </ul>
