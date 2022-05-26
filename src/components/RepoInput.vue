@@ -1,19 +1,37 @@
 <template>
-    <div>
-        <input class="input" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username" />
-        <span class="help" v-if="error">{{ error }}</span>
+    <form class="form" @submit.prevent="onSubmit" target="#">
+        <div class="field has-addons">
+            <div class="control">
+                <div class="button is-info">
+                    Username
+                </div>
+            </div>
+            <div class="control is-expanded">
+                <input class="input" :class="error ? 'is-danger' : (userRepos.length > 0 ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
+            </div>
+        </div>
 
+        <div class="field has-addons">
+            <div class="control">
+                <div class="button is-info">
+                    Repository
+                </div>
+            </div>
+            <div class="control is-expanded">
+                <input class="input" @blur.prevent="onSubmit()" v-model="repoName" placeholder="Repository name" list="repo-suggestions" />
+                <datalist id="repo-suggestions">
+                    <option v-for="repo in userRepos" v-bind:key="repo.id" :value="repo.name" />
+                </datalist>
+            </div>
+        </div>
 
-        <autocomplete :disabled="userName.trim().length === 0" :permitArbitraryValues="true" @blur.prevent="onSubmit()" class="input" v-model="repoName" :items="userRepos" returned="name" displayed="name" placeholder="Repository" />
-
-
-
-    </div>
+        <span class="help is-danger" v-if="error">{{ error }}</span>
+        <button class="button is-primary" type="submit">Show release stats</button>
+    </form>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import autocomplete from 'vue-autocomplete-input-tag';
 import { RepoInfo } from '@/models/RepoInfo';
 import { Repository } from '@/models/Repository';
 
@@ -21,7 +39,7 @@ export default defineComponent({
     name: 'RepoInput',
     emits: ["repo-change"],
     components: {
-        autocomplete
+
     },
     data() {
         return {
@@ -45,9 +63,11 @@ export default defineComponent({
             }
         },
         onSubmit() {
+            if (!this.$data.userName || !this.$data.repoName) {
+                return;
+            }
             let repoInfo = new RepoInfo(this.$data.repoName, this.$data.userName);
             this.$emit("repo-change", repoInfo);
-
             history.pushState(repoInfo, "", RepoInfo.toURL(repoInfo));
         },
         async loadUserRepos() {
