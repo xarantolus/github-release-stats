@@ -7,7 +7,7 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : (userRepos.length > 0 ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
+                <input class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
             </div>
         </div>
 
@@ -18,7 +18,7 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input class="input" @input="releases = []" :class="releasesError ? 'is-danger' : (releases ? 'is-success' : '')" @blur.prevent="onSubmit()" v-model="repoName" placeholder="Repository name" list="repo-suggestions" />
+                <input class="input" @input="releases = []" :class="releasesError ? 'is-danger' : ((releases.length > 0 && userName.trim()) ? 'is-success' : '')" @blur.prevent="onSubmit()" v-model="repoName" placeholder="Repository name" list="repo-suggestions" />
                 <datalist id="repo-suggestions">
                     <option v-for="repo in userRepos" v-bind:key="repo.id" :value="repo.name" />
                 </datalist>
@@ -26,7 +26,7 @@
         </div>
 
         <span class="help is-danger" v-if="usernameError">{{ usernameError }}</span>
-        <span class="help is-danger" v-if="releasesError">{{ releasesError }}</span>
+        <span class="help is-danger mb-1 mt-0" v-if="releasesError">{{ releasesError }}</span>
 
         <button class="button is-primary" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
     </form>
@@ -92,6 +92,10 @@ export default defineComponent({
                 }
             } finally {
                 this.loading = false;
+            }
+
+            if (this.$data.usernameError || this.$data.releasesError) {
+                this.$emit("repo-change", null);
             }
         },
         async loadReleases() {

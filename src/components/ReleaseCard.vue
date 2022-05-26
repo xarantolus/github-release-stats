@@ -1,7 +1,7 @@
 <template>
     <div class="card">
         <header class="card-header">
-            <a :href="release.html_url" target="_blank" class="card-header-title">
+            <a :href="release.html_url" target="_blank" class="card-header-title title is-5">
                 {{ release.name }}
             </a>
         </header>

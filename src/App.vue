@@ -2,8 +2,10 @@
   <div class="stats-app">
     <h3 class="title is-3">GitHub Release Stats</h3>
     <RepoInput @repo-change="handleRepoChange" />
-
-    <div class="pt-4">
+    <p class="mt-5 title is-5 has-text-danger has-text-weight-bold" v-if="releases && releases.length === 0">No releases available for this repository.</p>
+    <ReleaseSummary v-if="releases && releases.length > 0" class="mt-4" :releases="releases!"></ReleaseSummary>
+    <div class="mt-4" v-if="releases && releases.length > 0">
+      <h5 class="title is-5 pt-4">Releases</h5>
       <ReleaseCard v-for="release in (releases ?? [])" v-bind:key="release.id" :release="release" />
     </div>
   </div>
@@ -12,14 +14,16 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import RepoInput from '@/components/RepoInput.vue';
-import ReleaseCard from './components/ReleaseCard.vue';
-import { Release } from './models/Release';
+import ReleaseCard from '@/components/ReleaseCard.vue';
+import ReleaseSummary from '@/components/ReleaseSummary.vue';
+import { Release } from '@/models/Release';
 
 export default defineComponent({
   name: 'App',
   components: {
     RepoInput,
-    ReleaseCard
+    ReleaseCard,
+    ReleaseSummary
   },
   data() {
     return {
@@ -27,7 +31,7 @@ export default defineComponent({
     }
   },
   methods: {
-    handleRepoChange(evt: Array<Release>) {
+    handleRepoChange(evt: Array<Release> | null) {
       this.releases = evt;
     }
   }
