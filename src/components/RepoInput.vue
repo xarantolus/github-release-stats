@@ -51,11 +51,11 @@ export default defineComponent({
             ...RepoInfo.fromState(window.location.search, window.history.state)
         }
     },
-    mounted() {
+    async mounted() {
         // If the username is already filled in, we can directly fetch repo suggestions
-        this.loadUserRepos();
+        await this.loadUserRepos();
         // We can also already submit the form in case all data is filled in
-        this.onSubmit();
+        await this.onSubmit();
     },
     created() {
         window.onpopstate = this.handlePop;
@@ -77,22 +77,22 @@ export default defineComponent({
             this.loading = true;
 
             try {
-                let repoInfo = new RepoInfo(this.$data.repoName, this.$data.userName);
                 await this.loadReleases();
-                if (this.$data.releases) {
 
+                if (this.$data.releases) {
+                    let repoInfo = new RepoInfo(this.$data.repoName, this.$data.userName);
                     let previousInfo = RepoInfo.fromState(window.location.search, null);
                     if (!RepoInfo.equal(previousInfo, repoInfo)) {
                         history.pushState(repoInfo, "", RepoInfo.toURL(repoInfo));
                     }
-                    this.$emit("repo-change", this.$data.releases);
+                    this.$emit("repo-change", this.$data.releases, repoInfo.userName, repoInfo.repoName);
                 }
             } finally {
                 this.loading = false;
             }
 
             if (this.$data.usernameError || this.$data.releasesError) {
-                this.$emit("repo-change", null);
+                this.$emit("repo-change", null, null, null);
             }
         },
         async loadReleases() {
@@ -100,6 +100,15 @@ export default defineComponent({
 
             this.releases = [];
             this.releasesError = "";
+
+            // If we have seen this repository in our list before, we correct the casing of the input
+            let knownRepo = this.userRepos
+                .find(r => r.owner.login.toUpperCase() == this.userName.toUpperCase() &&
+                    r.name.toUpperCase() == this.repoName.toUpperCase());
+            if (knownRepo) {
+                this.userName = knownRepo.owner.login;
+                this.repoName = knownRepo.name;
+            }
 
             let resp = await fetch(`https://api.github.com/repos/${encodeURI(this.userName)}/${encodeURI(this.repoName)}/releases?per_page=100`);
             if (!resp.ok) {
@@ -121,6 +130,12 @@ export default defineComponent({
                 return;
             }
             this.userRepos = await resp.json();
+
+            // If we find a repo owned by this user in these repositories, we correct the casing of the username
+            let repoByUser = this.userRepos.find(r => r.owner.login.toUpperCase() == this.userName.toUpperCase())
+            if (repoByUser) {
+                this.userName = repoByUser.owner.login;
+            }
         }
     }
 });

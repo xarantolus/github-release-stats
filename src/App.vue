@@ -6,7 +6,7 @@
       <RepoInput @repo-change="handleRepoChange" />
     </div>
     <p class="mt-5 title is-5 has-text-danger has-text-weight-bold" v-if="releases && releases.length === 0">No releases available for this repository.</p>
-    <ReleaseSummary v-if="releases && releases.length > 0" class="mt-4" :releases="releases!"></ReleaseSummary>
+    <ReleaseSummary v-if="releases && releases.length > 0" class="mt-4" :releases="releases!" :user-name="userName!" :repo-name="repoName!"></ReleaseSummary>
     <div class="mt-4" v-if="releases && releases.length > 0">
       <h4 class="title is-4 pt-4">Releases</h4>
       <ReleaseCard v-for="release in (releases ?? [])" v-bind:key="release.id" :release="release" />
@@ -30,12 +30,16 @@ export default defineComponent({
   },
   data() {
     return {
-      releases: null as Array<Release> | null
+      releases: null as Array<Release> | null,
+      repoName: "" as string | undefined,
+      userName: "" as string | undefined
     }
   },
   methods: {
-    handleRepoChange(evt: Array<Release> | null) {
+    handleRepoChange(evt: Array<Release> | null, userName: string | undefined, repoName: string | undefined) {
       this.releases = evt;
+      this.userName = userName;
+      this.repoName = repoName;
     }
   }
 });

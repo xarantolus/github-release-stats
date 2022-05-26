@@ -2,7 +2,8 @@
     <div class="card">
         <header class="card-header">
             <span class="card-header-title title is-5">
-                Summary
+                Summary for&nbsp;
+                <a :href="'https://github.com/' + encodeURI(userName) + '/' + encodeURI(repoName)" target="_blank">{{ userName }}/{{ repoName }}</a>
             </span>
         </header>
         <div class="card-content">
@@ -38,7 +39,15 @@ export default defineComponent({
         releases: {
             type: Array as () => Array<Release>,
             required: true
-        }
+        },
+        userName: {
+            type: String,
+            required: true
+        },
+        repoName: {
+            type: String,
+            required: true
+        },
     },
     methods: {
         totalDownloads(): number {

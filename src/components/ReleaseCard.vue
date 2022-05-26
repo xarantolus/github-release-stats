@@ -29,7 +29,7 @@
                 <h6 class="title is-6 mb-0">Assets</h6>
                 <ul class="mt-1">
                     <li v-for="asset in release.assets" v-bind:key="asset.id">
-                        <a :href="asset.browser_download_url" target="_blank"><code>{{asset.name}}</code></a>: {{asset.download_count}} downloads
+                        <a :href="asset.browser_download_url" target="_blank"><code>{{ asset.name }}</code></a>: {{ asset.download_count }} downloads, {{ prettyBytes(asset.size) }}
                     </li>
                 </ul>
             </div>
@@ -40,6 +40,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 import { Release } from '@/models/Release';
+import prettyBytes from 'pretty-bytes';
 
 export default defineComponent({
     name: 'ReleaseCard',
@@ -48,6 +49,9 @@ export default defineComponent({
             type: Object as PropType<Release>,
             required: true
         }
+    },
+    methods: {
+        prettyBytes,
     }
 });
 </script>
