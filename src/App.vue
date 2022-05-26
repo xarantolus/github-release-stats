@@ -5,12 +5,25 @@
     <div class="repo-input mt-4">
       <RepoInput @repo-change="handleRepoChange" />
     </div>
-    <p class="mt-5 title is-5 has-text-danger has-text-weight-bold" v-if="releases && releases.length === 0">No releases available for this repository.</p>
-    <ReleaseSummary v-if="releases && releases.length > 0" class="mt-4" :releases="releases!" :user-name="userName!" :repo-name="repoName!"></ReleaseSummary>
-    <div class="mt-4" v-if="releases && releases.length > 0">
-      <h4 class="title is-4 pt-4">Releases</h4>
-      <ReleaseCard v-for="release in (releases ?? [])" v-bind:key="release.id" :release="release" />
-    </div>
+
+    <template v-if="releases && releases.length === 0">
+      <!-- No releases to show, but everything worked -->
+      <p class="mt-5 title is-5 has-text-danger has-text-weight-bold">No releases available for this repository.</p>
+    </template>
+
+    <template v-else-if="releases && releases.length > 0">
+      <!-- We have releases we can show, everything worked -->
+      <ReleaseSummary class="mt-4" :releases="releases!" :user-name="userName!" :repo-name="repoName!"></ReleaseSummary>
+      <div class="mt-4">
+        <h4 class="title is-4 pt-4">Releases</h4>
+        <ReleaseCard v-for="release in (releases ?? [])" v-bind:key="release.id" :release="release" />
+      </div>
+    </template>
+
+    <template v-else-if="history.length > 0">
+      <!-- No releases to show, so show the history -->
+      <button @click.prevent="">TODO</button>
+    </template>
   </div>
 </template>
 
@@ -20,6 +33,8 @@ import RepoInput from '@/components/RepoInput.vue';
 import ReleaseCard from '@/components/ReleaseCard.vue';
 import ReleaseSummary from '@/components/ReleaseSummary.vue';
 import { Release } from '@/models/Release';
+import { RepoHistory } from './models/RepoHistory';
+
 
 export default defineComponent({
   name: 'App',
@@ -30,6 +45,7 @@ export default defineComponent({
   },
   data() {
     return {
+      history: RepoHistory.load(),
       releases: null as Array<Release> | null,
       repoName: "" as string | undefined,
       userName: "" as string | undefined
@@ -40,6 +56,14 @@ export default defineComponent({
       this.releases = evt;
       this.userName = userName;
       this.repoName = repoName;
+
+      if (this.userName && this.repoName) {
+        this.history = RepoHistory.addEntry({
+          lastVisit: new Date(),
+          repoName: this.repoName,
+          userName: this.userName,
+        });
+      }
     }
   }
 });
