@@ -1,20 +1,34 @@
 <template>
-  <RepoInput @repo-change="handleRepoChange" />
+  <div class="stats-app">
+    <h3 class="title is-3">GitHub Release Stats</h3>
+    <RepoInput @repo-change="handleRepoChange" />
+
+    <div class="pt-4">
+      <ReleaseCard v-for="release in (releases ?? [])" v-bind:key="release.id" :release="release" />
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import RepoInput from '@/components/RepoInput.vue';
-import { RepoInfo } from '@/models/RepoInfo';
+import ReleaseCard from './components/ReleaseCard.vue';
+import { Release } from './models/Release';
 
 export default defineComponent({
   name: 'App',
   components: {
-    RepoInput
+    RepoInput,
+    ReleaseCard
+  },
+  data() {
+    return {
+      releases: null as Array<Release> | null
+    }
   },
   methods: {
-    handleRepoChange(evt: RepoInfo) {
-      console.log(evt);
+    handleRepoChange(evt: Array<Release>) {
+      this.releases = evt;
     }
   }
 });
@@ -86,5 +100,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: var(--font-color);
+}
+
+.stats-app {
+  width: 60%;
+  margin: 0 auto;
+
+  padding-top: 2.5%;
+}
+
+@media only screen and (max-width: 1024px) {
+  .stats-app {
+    width: 100%;
+    margin: 0 auto;
+
+    padding-top: 5%;
+  }
+
 }
 </style>

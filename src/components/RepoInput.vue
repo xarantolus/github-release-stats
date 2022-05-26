@@ -1,5 +1,5 @@
 <template>
-    <form class="form" @submit.prevent="onSubmit" target="#">
+    <form class="form" @submit.prevent="onSubmit()" target="#">
         <div class="field has-addons">
             <div class="control">
                 <div class="button is-info">
@@ -7,7 +7,7 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input class="input" :class="error ? 'is-danger' : (userRepos.length > 0 ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
+                <input class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : (userRepos.length > 0 ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
             </div>
         </div>
 
@@ -18,15 +18,17 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input class="input" @blur.prevent="onSubmit()" v-model="repoName" placeholder="Repository name" list="repo-suggestions" />
+                <input class="input" @input="releases = []" :class="releasesError ? 'is-danger' : (releases ? 'is-success' : '')" @blur.prevent="onSubmit()" v-model="repoName" placeholder="Repository name" list="repo-suggestions" />
                 <datalist id="repo-suggestions">
                     <option v-for="repo in userRepos" v-bind:key="repo.id" :value="repo.name" />
                 </datalist>
             </div>
         </div>
 
-        <span class="help is-danger" v-if="error">{{ error }}</span>
-        <button class="button is-primary" type="submit">Show release stats</button>
+        <span class="help is-danger" v-if="usernameError">{{ usernameError }}</span>
+        <span class="help is-danger" v-if="releasesError">{{ releasesError }}</span>
+
+        <button class="button is-primary" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
     </form>
 </template>
 
@@ -34,22 +36,26 @@
 import { defineComponent } from 'vue';
 import { RepoInfo } from '@/models/RepoInfo';
 import { Repository } from '@/models/Repository';
+import { Release } from '@/models/Release';
 
 export default defineComponent({
     name: 'RepoInput',
     emits: ["repo-change"],
-    components: {
-
-    },
     data() {
         return {
             userRepos: [] as Array<Repository>,
-            error: "",
+            usernameError: "",
+            releasesError: "",
+            loading: false,
+            releases: [] as Array<Release>,
             ...RepoInfo.fromState(window.location.search, window.history.state)
         }
     },
     mounted() {
-        this.loadUserRepos()
+        // If the username is already filled in, we can directly fetch repo suggestions
+        this.loadUserRepos();
+        // We can also already submit the form in case all data is filled in
+        this.onSubmit();
     },
     created() {
         window.onpopstate = this.handlePop;
@@ -62,25 +68,50 @@ export default defineComponent({
                 this.$data.userName = info.userName;
             }
         },
-        onSubmit() {
+        async onSubmit() {
             if (!this.$data.userName || !this.$data.repoName) {
                 return;
             }
-            let repoInfo = new RepoInfo(this.$data.repoName, this.$data.userName);
-            this.$emit("repo-change", repoInfo);
-            history.pushState(repoInfo, "", RepoInfo.toURL(repoInfo));
+
+            this.loading = true;
+
+            try {
+                let repoInfo = new RepoInfo(this.$data.repoName, this.$data.userName);
+                await this.loadRepository();
+                if (this.$data.releases) {
+                    this.$emit("repo-change", this.$data.releases);
+                    history.pushState(repoInfo, "", RepoInfo.toURL(repoInfo));
+                }
+            } finally {
+                this.loading = false;
+            }
+        },
+        async loadRepository() {
+            if (!this.userName || !this.repoName) return;
+
+            this.releases = [];
+            this.releasesError = "";
+
+            let resp = await fetch(`https://api.github.com/repos/${encodeURI(this.userName)}/${encodeURI(this.repoName)}/releases?per_page=100`);
+            if (!resp.ok) {
+                this.releasesError = `Invalid status code ${resp.status} while fetching repository release info`;
+                return;
+            }
+
+            this.releases = await resp.json();
         },
         async loadUserRepos() {
             if (!this.userName) return;
 
             this.userRepos = [];
+            this.usernameError = "";
+
             let resp = await fetch(`https://api.github.com/users/${encodeURI(this.userName)}/repos?per_page=100`);
             if (!resp.ok) {
-                this.error = `Invalid status code ${resp.status} while fetching user info`;
+                this.usernameError = `Invalid status code ${resp.status} while fetching user info`;
                 return;
             }
             this.userRepos = await resp.json();
-            this.error = "";
         }
     }
 });
@@ -107,5 +138,9 @@ export default defineComponent({
 
 .vue-autocomplete-input-tag-item:hover {
     background-color: var(--card-hover-color);
+}
+
+.card-content {
+    padding: 1rem !important;
 }
 </style>
