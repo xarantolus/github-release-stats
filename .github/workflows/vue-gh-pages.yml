@@ -17,4 +17,5 @@ jobs:
         gitemail: "41898282+github-actions[bot]@users.noreply.github.com"
         gitname: "github-actions"
         gitmsg: "Build for GH pages"
+        cname: ghstats.010.one
         token: ${{ secrets.GITHUB_TOKEN }}
