@@ -83,10 +83,7 @@ export default defineComponent({
 
                     let previousInfo = RepoInfo.fromState(window.location.search, null);
                     if (!RepoInfo.equal(previousInfo, repoInfo)) {
-                        console.log("infos not equal")
                         history.pushState(repoInfo, "", RepoInfo.toURL(repoInfo));
-                    } else {
-                        console.log("info equal")
                     }
                     this.$emit("repo-change", this.$data.releases);
                 }

@@ -11,7 +11,7 @@
                     <li>
                         {{ releases.length == 1 ? 'One releases' : (releases.length + ' releases') }} loaded
                     </li>
-                    <li>
+                    <li v-if="allReleasesHaveAllAssets()">
                         {{ totalDownloads() }} total downloads
                     </li>
                 </ul>
@@ -51,6 +51,7 @@ export default defineComponent({
             let allAssetNames = [...new Set(
                 this.releases.flatMap(r => r.assets.map(a => a.name))
             )];
+            if (allAssetNames.length == 0) return false;
 
             return this.releases.every(r => {
                 let releaseAssetNames = r.assets.map(a => a.name);

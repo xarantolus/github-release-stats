@@ -19,13 +19,13 @@
                             {{ new Date(release.published_at).toLocaleString() }}
                         </time>
                     </li>
-                    <li>
+                    <li v-if="release.assets.length > 0">
                         Total downloads:
                         {{ release.assets.map(a => a.download_count).reduce((a, b) => a + b, 0) }}
                     </li>
                 </ul>
             </div>
-            <div class="content has-text-left asset-info">
+            <div class="content has-text-left asset-info" v-if="release.assets.length > 0">
                 <h6 class="title is-6 mb-0">Assets</h6>
                 <ul class="mt-1">
                     <li v-for="asset in release.assets" v-bind:key="asset.id">

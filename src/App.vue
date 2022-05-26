@@ -1,11 +1,14 @@
 <template>
   <div class="stats-app">
-    <h3 class="title is-3">GitHub Release Stats</h3>
-    <RepoInput @repo-change="handleRepoChange" />
+    <h3 class="title is-3 mb-1">GitHub Release Stats</h3>
+    <p>This page summarizes stats from a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
+    <div class="repo-input mt-4">
+      <RepoInput @repo-change="handleRepoChange" />
+    </div>
     <p class="mt-5 title is-5 has-text-danger has-text-weight-bold" v-if="releases && releases.length === 0">No releases available for this repository.</p>
     <ReleaseSummary v-if="releases && releases.length > 0" class="mt-4" :releases="releases!"></ReleaseSummary>
     <div class="mt-4" v-if="releases && releases.length > 0">
-      <h5 class="title is-5 pt-4">Releases</h5>
+      <h4 class="title is-4 pt-4">Releases</h4>
       <ReleaseCard v-for="release in (releases ?? [])" v-bind:key="release.id" :release="release" />
     </div>
   </div>
@@ -104,6 +107,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: var(--font-color);
+
+  margin: 2.5%;
 }
 
 .stats-app {
@@ -111,6 +116,11 @@ body {
   margin: 0 auto;
 
   padding-top: 2.5%;
+}
+
+.repo-input {
+  width: 60%;
+  margin: 0 auto;
 }
 
 @media only screen and (max-width: 1024px) {
@@ -121,5 +131,8 @@ body {
     padding-top: 5%;
   }
 
+  .repo-input {
+    width: 100%
+  }
 }
 </style>
