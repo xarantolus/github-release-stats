@@ -28,7 +28,12 @@
         <span class="help is-danger" v-if="usernameError">{{ usernameError }}</span>
         <span class="help is-danger mb-1 mt-0" v-if="releasesError">{{ releasesError }}</span>
 
-        <button class="button is-primary" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
+        <div class="buttons is-centered"  >
+            <button tabindex="-1" type="reset" @click.prevent="reset()" v-if="userName.trim() || repoName.trim()" class="button is-secondary">Clear</button>
+            <button type="reset" v-else class="button is-secondary is-disabled" disabled>Clear</button>
+
+            <button class="button is-primary" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
+        </div>
     </form>
 </template>
 
@@ -68,6 +73,13 @@ export default defineComponent({
                 this.$data.userName = info.userName;
             }
             this.onSubmit()
+        },
+        reset() {
+            this.userName = this.repoName = "";
+            this.userRepos = [];
+            this.usernameError = this.releasesError = "";
+            history.pushState(null, "", location.protocol + "//" + location.host + location.pathname);
+            this.$emit("repo-change", null, null, null);
         },
         async onSubmit() {
             if (!this.$data.userName || !this.$data.repoName || this.loading) {
