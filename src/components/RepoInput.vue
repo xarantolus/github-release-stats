@@ -7,7 +7,7 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
+                <input autofocus class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
             </div>
         </div>
 
