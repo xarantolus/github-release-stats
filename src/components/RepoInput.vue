@@ -67,9 +67,10 @@ export default defineComponent({
                 this.$data.repoName = info.repoName;
                 this.$data.userName = info.userName;
             }
+            this.onSubmit()
         },
         async onSubmit() {
-            if (!this.$data.userName || !this.$data.repoName) {
+            if (!this.$data.userName || !this.$data.repoName || this.loading) {
                 return;
             }
 
@@ -77,16 +78,23 @@ export default defineComponent({
 
             try {
                 let repoInfo = new RepoInfo(this.$data.repoName, this.$data.userName);
-                await this.loadRepository();
+                await this.loadReleases();
                 if (this.$data.releases) {
+
+                    let previousInfo = RepoInfo.fromState(window.location.search, null);
+                    if (!RepoInfo.equal(previousInfo, repoInfo)) {
+                        console.log("infos not equal")
+                        history.pushState(repoInfo, "", RepoInfo.toURL(repoInfo));
+                    } else {
+                        console.log("info equal")
+                    }
                     this.$emit("repo-change", this.$data.releases);
-                    history.pushState(repoInfo, "", RepoInfo.toURL(repoInfo));
                 }
             } finally {
                 this.loading = false;
             }
         },
-        async loadRepository() {
+        async loadReleases() {
             if (!this.userName || !this.repoName) return;
 
             this.releases = [];

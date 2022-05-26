@@ -29,7 +29,7 @@
                 <h6 class="title is-6 mb-0">Assets</h6>
                 <ul class="mt-1">
                     <li v-for="asset in release.assets" v-bind:key="asset.id">
-                        <a :href="asset.browser_download_url" target="_blank"><code>{{asset.name}}</code></a>: <math>{{asset.download_count}}</math> downloads
+                        <a :href="asset.browser_download_url" target="_blank"><code>{{asset.name}}</code></a>: {{asset.download_count}} downloads
                     </li>
                 </ul>
             </div>

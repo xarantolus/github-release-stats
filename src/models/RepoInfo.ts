@@ -18,9 +18,13 @@ export class RepoInfo {
 
     public static fromState(urlSearch: string, state: any): RepoInfo {
         const urlParams = new URLSearchParams(urlSearch);
-        return {
-            repoName: urlParams.get('repo') ?? state?.repoName ?? "",
-            userName: urlParams.get('user') ?? state?.userName ?? "",
-        }
+        return new RepoInfo(
+            urlParams.get('repo') ?? state?.repoName ?? "",
+            urlParams.get('user') ?? state?.userName ?? "",
+        );
+    }
+
+    public static equal(r1: RepoInfo, r2: RepoInfo) : boolean {
+        return r1.repoName == r2.repoName && r1.userName == r2.userName;
     }
 }
