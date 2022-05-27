@@ -107,7 +107,7 @@ export default defineComponent({
             try {
                 await this.loadReleases();
 
-                if (this.$data.releases) {
+                if (this.$data.releases && !this.releasesError) {
                     let repoInfo = new RepoInfo(this.$data.repoName, this.$data.userName);
                     let previousInfo = RepoInfo.fromState(window.location.search, null);
                     if (!RepoInfo.equal(previousInfo, repoInfo)) {
