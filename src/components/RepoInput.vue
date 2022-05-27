@@ -9,7 +9,7 @@
             <div class="control is-expanded">
                 <input autofocus class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username" list="user-suggestions">
                 <datalist id="user-suggestions">
-                    <option v-for="user in (usernameSuggestions??[])" v-bind:key="user" :value="user" />
+                    <option v-for="user in (usernameSuggestions ?? [])" v-bind:key="user" :value="user" />
                 </datalist>
             </div>
         </div>
@@ -32,7 +32,7 @@
         <span class="help is-danger mb-1 mt-0" v-if="releasesError">{{ releasesError }}</span>
 
         <div class="buttons has-addons is-centered">
-            <button tabindex="-1" type="reset" @click.prevent="reset()" v-if="userName.trim() || repoName.trim()" class="button is-secondary">Clear</button>
+            <button tabindex="-1" type="reset" @click.prevent="reset()" v-if="!loading && (userName.trim() || repoName.trim())" class="button is-secondary">Clear</button>
             <button type="reset" v-else class="button is-secondary is-disabled" disabled>Clear</button>
 
             <button v-if="!userName.trim() || !repoName.trim()" disabled class="button is-primary is-disabled" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
@@ -64,6 +64,7 @@ export default defineComponent({
             releasesError: "",
             loading: false,
             releases: [] as Array<Release>,
+            scheduledNextLoad: null as RepoInfo | null,
             ...RepoInfo.fromState(window.location.search, window.history.state),
         }
     },
@@ -94,7 +95,7 @@ export default defineComponent({
                 this.$data.repoName = info.repoName;
                 this.$data.userName = info.userName;
             }
-            this.onSubmit()
+            this.onSubmit();
         },
         reset() {
             this.userName = this.repoName = "";
@@ -104,7 +105,11 @@ export default defineComponent({
             this.$emit("repo-change", null, null, null);
         },
         async onSubmit() {
-            if (!this.$data.userName || !this.$data.repoName || this.loading) {
+            if (!this.$data.userName || !this.$data.repoName) {
+                return;
+            }
+            if (this.loading) {
+                this.scheduledNextLoad = new RepoInfo(this.$data.repoName, this.$data.userName);
                 return;
             }
 
@@ -121,12 +126,20 @@ export default defineComponent({
                     }
                     this.$emit("repo-change", this.$data.releases, repoInfo.userName, repoInfo.repoName);
                 }
-            } finally {
-                this.loading = false;
+            } catch (ex) {
+                console.error(ex);
             }
 
             if (this.$data.usernameError || this.$data.releasesError) {
                 this.$emit("repo-change", null, null, null);
+            }
+
+            // If we're done loading, we can load the next requested repo
+            this.loading = false;
+            if (this.scheduledNextLoad) {
+                let info = this.scheduledNextLoad;
+                this.scheduledNextLoad = null;
+                this.loadRepo(info.userName, info.repoName);
             }
         },
         async loadReleases() {
