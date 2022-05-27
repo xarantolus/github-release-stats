@@ -35,6 +35,12 @@
 
       <div class="button is-expanded is-danger mt-4" @click.prevent="removeAllHistory">Clear repository history</div>
     </div>
+
+    <template v-else>
+      <p class="mt-4">Not sure what you're looking for?
+        <a href="/?user=xarantolus&repo=filtrite" @click.prevent="repoInterface?.loadRepo('xarantolus', 'filtrite')">Click here to try one of my repos</a>.
+      </p>
+    </template>
   </div>
 </template>
 
@@ -187,7 +193,8 @@ body {
     padding-top: 5%;
   }
 
-  .repo-input, .history {
+  .repo-input,
+  .history {
     width: 100%
   }
 }

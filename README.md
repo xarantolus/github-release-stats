@@ -6,6 +6,7 @@ This is a simple [web application](https://ghstats.010.one) that shows stats abo
 * Automatic light and dark mode depending on device settings
 * Suggestions for repositories after typing in the username
 
+![](img/screenshot.png)
 [![Screenshot showing the summary section for one of my projects](.github/img/screenshot-darkmode.png)](https://ghstats.010.one/?user=xarantolus&repo=filtrite)
 
 This project was very much inspired by [@Somsubhra](https://github.com/Somsubhra)'s [project with the same name](https://github.com/Somsubhra/github-release-stats), but I built this from scratch.
