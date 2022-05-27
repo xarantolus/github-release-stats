@@ -24,8 +24,8 @@
       <hr>
       <h4 class="title is-4 pt-4">History</h4>
       <!-- No releases to show, so show the history -->
-      <div v-for="item in history" v-bind:key="item.userName + '/' + item.repoName" class="buttons field has-addons">
-        <a :href="historyURL(item)" @click.prevent="repoInterface?.loadRepo(item.userName, item.repoName)" class="control button is-expanded is-info">
+      <div v-for="item in history" v-bind:key="item.userName + '/' + item.repoName" class="buttons field has-addons mb-0">
+        <a :href="historyURL(item)" @click.prevent="repoInterface?.loadRepo(item.userName, item.repoName)" class="control button is-expanded is-info is-outlined has-text-weight-bold">
           {{ item.userName }}/{{ item.repoName }}
         </a>
         <div class="control button is-danger" @click.prevent="removeHistoryItem(item)">

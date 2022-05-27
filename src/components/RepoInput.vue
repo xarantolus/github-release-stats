@@ -28,11 +28,12 @@
         <span class="help is-danger" v-if="usernameError">{{ usernameError }}</span>
         <span class="help is-danger mb-1 mt-0" v-if="releasesError">{{ releasesError }}</span>
 
-        <div class="buttons is-centered">
+        <div class="buttons has-addons is-centered">
             <button tabindex="-1" type="reset" @click.prevent="reset()" v-if="userName.trim() || repoName.trim()" class="button is-secondary">Clear</button>
             <button type="reset" v-else class="button is-secondary is-disabled" disabled>Clear</button>
 
-            <button class="button is-primary" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
+            <button v-if="!userName.trim() || !repoName.trim()" disabled class="button is-primary is-disabled" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
+            <button v-else class="button is-primary" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
         </div>
     </form>
 </template>
