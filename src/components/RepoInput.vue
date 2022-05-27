@@ -7,7 +7,10 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input autofocus class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username">
+                <input autofocus class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username" list="user-suggestions">
+                <datalist id="user-suggestions">
+                    <option v-for="user in (usernameSuggestions??[])" v-bind:key="user" :value="user" />
+                </datalist>
             </div>
         </div>
 
@@ -39,7 +42,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { RepoInfo } from '@/models/RepoInfo';
 import { Repository } from '@/models/Repository';
 import { Release } from '@/models/Release';
@@ -51,6 +54,9 @@ export interface RepoInputInterface {
 export default defineComponent({
     name: 'RepoInput',
     emits: ["repo-change", "interface"],
+    props: {
+        usernameSuggestions: Array as PropType<string[]>,
+    },
     data() {
         return {
             userRepos: [] as Array<Repository>,

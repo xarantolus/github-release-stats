@@ -3,7 +3,7 @@
     <h3 class="title is-3 mb-1">GitHub Release Stats</h3>
     <p>This page summarizes stats from a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
     <div class="repo-input mt-4">
-      <RepoInput @repo-change="handleRepoChange" @interface="(i) => repoInterface = i" />
+      <RepoInput @repo-change="handleRepoChange" :username-suggestions="usernameSuggestions()" @interface="(i) => repoInterface = i" />
     </div>
 
     <template v-if="releases && releases.length === 0">
@@ -72,6 +72,11 @@ export default defineComponent({
     }
   },
   methods: {
+    usernameSuggestions() : Array<string> {
+      let users = this.history.map(i => i.userName);
+
+      return [...new Set(users)];
+    },
     historyURL(item: RepoHistoryItem): string {
       let ri = new RepoInfo(item.repoName, item.userName);
       return RepoInfo.toURL(ri);
