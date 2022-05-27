@@ -97,14 +97,17 @@ export default defineComponent({
             if (info.userName && info.repoName) {
                 this.$data.repoName = info.repoName;
                 this.$data.userName = info.userName;
+                this.onSubmit();
+            } else {
+                this.reset(true);
             }
-            this.onSubmit();
         },
-        reset() {
+        reset(goingBack?: boolean | undefined) {
             this.userName = this.repoName = "";
             this.userRepos = [];
             this.usernameError = this.releasesError = "";
-            history.pushState(null, "", location.protocol + "//" + location.host + location.pathname);
+            if (!goingBack)
+                history.pushState(null, "", location.protocol + "//" + location.host + location.pathname);
             this.$emit("repo-change", null, null, null);
         },
         async onSubmit() {
