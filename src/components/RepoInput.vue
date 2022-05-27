@@ -49,6 +49,7 @@ import { Release } from '@/models/Release';
 
 export interface RepoInputInterface {
     loadRepo(user: string, name: string): void;
+    reset(): void;
 }
 
 export default defineComponent({
@@ -71,7 +72,8 @@ export default defineComponent({
     async mounted() {
         // Emit our interface to make sure the app component can call this
         this.$emit('interface', {
-            loadRepo: this.loadRepo
+            loadRepo: this.loadRepo,
+            reset: this.reset,
         } as RepoInputInterface)
 
         // If the username is already filled in, we can directly fetch repo suggestions

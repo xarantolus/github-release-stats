@@ -1,14 +1,19 @@
 <template>
   <div class="stats-app">
     <h3 class="title is-3 mb-1">GitHub Release Stats</h3>
-    <p>This page summarizes stats from a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
-    <div class="repo-input mt-4">
+
+    <p v-if="showForm()">This page summarizes stats for a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
+
+    <div :class="{ hidden: !showForm() }" class="repo-input mt-4">
+      <!-- We only show the input form if we don't have "noshow" in the search part of the URl -->
       <RepoInput @repo-change="handleRepoChange" :username-suggestions="usernameSuggestions()" @interface="(i) => repoInterface = i" />
     </div>
 
     <template v-if="releases && releases.length === 0">
       <!-- No releases to show, but everything worked -->
-      <p class="mt-5 title is-5 has-text-danger has-text-weight-bold">No releases available for this repository.</p>
+      <p class="mt-5 title is-5 has-text-danger has-text-weight-bold">No releases available for&nbsp;
+        <a :href="'https://github.com/' + encodeURI(userName!) + '/' + encodeURI(repoName!)" target="_blank">{{ userName }}/{{ repoName }}</a>.
+      </p>
     </template>
 
     <template v-else-if="releases && releases.length > 0">
@@ -20,10 +25,10 @@
       </div>
     </template>
 
-    <div v-else-if="history.length > 0" class="history">
+    <div v-else-if="showForm() && history.length > 0" class="history">
+      <!-- No releases to show, so show the history -->
       <hr>
       <h4 class="title is-4 pt-4">History</h4>
-      <!-- No releases to show, so show the history -->
       <div v-for="item in history" v-bind:key="item.userName + '/' + item.repoName" class="buttons field has-addons mb-0">
         <a :href="historyURL(item)" @click.prevent="repoInterface?.loadRepo(item.userName, item.repoName)" class="control button is-expanded is-info is-outlined has-text-weight-bold">
           {{ item.userName }}/{{ item.repoName }}
@@ -36,11 +41,24 @@
       <div class="button is-expanded is-danger mt-4" @click.prevent="removeAllHistory">Clear repository history</div>
     </div>
 
-    <template v-else>
+    <template v-else-if="showForm()">
+      <!-- A small example to see how the page works -->
       <p class="mt-4">Not sure what you're looking for?
         <a href="/?user=xarantolus&repo=filtrite" @click.prevent="repoInterface?.loadRepo('xarantolus', 'filtrite')">Click here to try one of my repos</a>.
       </p>
     </template>
+
+    <!-- This one is only shown when the "noform" parameter is true, this is the loading animation for that mode -->
+    <!-- TODO: When loading fails (e.g. 403), this will still show the loading animation -->
+    <button  class="button is-large is-loading is-primary">Loading...</button>
+
+
+    <span class="help" v-if="showForm()">
+      If you want to link to releases without showing the input above, you can add the <code>noform</code> URL parameter.
+    </span>
+    <span class="help" v-else>
+      The current page shows stats for {{ userName }}/{{ repoName }}, visit the <a @click.prevent="repoInterface?.reset()" href="/">main page</a> to find stats for other repositories.
+    </span>
   </div>
 </template>
 
@@ -72,7 +90,10 @@ export default defineComponent({
     }
   },
   methods: {
-    usernameSuggestions() : Array<string> {
+    showForm(): boolean {
+      return !window.location.search.includes('noform');
+    },
+    usernameSuggestions(): Array<string> {
       let users = this.history.map(i => i.userName);
 
       return [...new Set(users)];
@@ -193,6 +214,10 @@ body {
 .history {
   width: 80%;
   margin: 0 auto;
+}
+
+.hidden {
+  display: none;
 }
 
 @media only screen and (max-width: 1024px) {

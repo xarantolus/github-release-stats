@@ -5,6 +5,7 @@ This is a simple [web application](https://ghstats.010.one) that shows stats abo
 * Show stats for repositories
 * Automatic light and dark mode depending on device settings
 * Suggestions for repositories after typing in the username
+* You can link to a page without the repository input box by including the `noform` URL parameter, e.g. [like this](https://ghstats.010.one/?user=xarantolus&repo=filtrite&noform)
 
 [![Screenshot showing the summary section for one of my projects](.github/img/screenshot-darkmode.png)](https://ghstats.010.one/?user=xarantolus&repo=filtrite)
 
