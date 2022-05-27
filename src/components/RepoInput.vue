@@ -170,28 +170,6 @@ export default defineComponent({
 </script>
 
 <style>
-.vue-autocomplete-input-tag-items {
-    border: 1px solid var(--border-color);
-    max-height: 50%;
-    width: 100%;
-    background-color: var(--card-color);
-    border-radius: 8px;
-    overflow: auto;
-}
-
-.vue-autocomplete-input-tag-item {
-    padding: 6px 16px;
-    color: var(--font-color);
-    max-width: 100%;
-    cursor: pointer;
-    text-align: left;
-    font-size: 14px;
-}
-
-.vue-autocomplete-input-tag-item:hover {
-    background-color: var(--card-hover-color);
-}
-
 .card-content {
     padding: 1rem !important;
 }
