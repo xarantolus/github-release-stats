@@ -58,7 +58,7 @@ export default defineComponent({
                 return 'Today, ' + ago(date)
             }
             if (this.isDaysAgo(date, 1)) {
-                return 'Yesterday'
+                return `Yesterday, ${date.getHours()}:${date.getMinutes()}`
             }
             if (this.isDaysAgo(date, 2)) {
                 return '2 days ago'
