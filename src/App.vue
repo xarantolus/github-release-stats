@@ -53,6 +53,7 @@ import { Release } from '@/models/Release';
 import { RepoHistory, RepoHistoryItem } from './models/RepoHistory';
 import { RepoInfo } from './models/RepoInfo';
 
+const appTitle = "GitHub Release Stats"
 
 export default defineComponent({
   name: 'App',
@@ -92,6 +93,10 @@ export default defineComponent({
           repoName: this.$data.repoName,
           userName: this.$data.userName,
         });
+
+        document.title = `${this.userName}/${this.repoName} | ${appTitle}`;
+      } else {
+        document.title = appTitle;
       }
     }
   }
