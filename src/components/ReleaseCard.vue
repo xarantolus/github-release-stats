@@ -15,8 +15,8 @@
                     </li>
                     <li>
                         Published:
-                        <time :datetime="new Date(release.published_at).toISOString()">
-                            {{ new Date(release.published_at).toLocaleString() }}
+                        <time :datetime="new Date(release.published_at).toISOString()" :title="new Date(release.published_at).toISOString()">
+                            {{ formatDate(new Date(release.published_at)) }}
                         </time>
                     </li>
                     <li v-if="release.assets.length > 0">
@@ -41,6 +41,7 @@
 import { defineComponent, PropType } from 'vue';
 import { Release } from '@/models/Release';
 import prettyBytes from 'pretty-bytes';
+import ago from "ts-ago";
 
 export default defineComponent({
     name: 'ReleaseCard',
@@ -52,6 +53,32 @@ export default defineComponent({
     },
     methods: {
         prettyBytes,
+        formatDate(date: Date) {
+            if (this.isToday(date)) {
+                return 'Today, ' + ago(date)
+            }
+            if (this.isDaysAgo(date, 1)) {
+                return 'Yesterday'
+            }
+            if (this.isDaysAgo(date, 2)) {
+                return '2 days ago'
+            }
+
+            return ago(date) ?? date.toDateString();
+        },
+        isToday(date: Date): boolean {
+            const today = new Date()
+            return date.getDate() === today.getDate() &&
+                date.getMonth() === today.getMonth() &&
+                date.getFullYear() === today.getFullYear();
+        },
+        isDaysAgo(date: Date, numDays: number): boolean {
+            const yesterday = new Date()
+            yesterday.setDate(yesterday.getDate() - numDays);
+            return date.getDate() === yesterday.getDate() &&
+                date.getMonth() === yesterday.getMonth() &&
+                date.getFullYear() === yesterday.getFullYear();
+        },
     }
 });
 </script>

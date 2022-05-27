@@ -12,6 +12,7 @@
     "bulma-prefers-dark": "^0.1.0-beta.1",
     "core-js": "^3.8.3",
     "pretty-bytes": "^6.0.0",
+    "ts-ago": "^1.0.1",
     "vue": "^3.2.13",
     "vue-autocomplete-input-tag": "^2.0.1"
   },
