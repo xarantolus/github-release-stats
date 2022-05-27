@@ -5,18 +5,26 @@ export class RepoHistory {
         const storedItems = localStorage.getItem(this.key) ?? "[]";
 
         try {
-            return (JSON.parse(storedItems) as Array<RepoHistoryItem>)
-                .sort((a, b) => (+new Date(a.lastVisit)) - (+new Date(b.lastVisit)));
+            const items = (JSON.parse(storedItems) as Array<RepoHistoryItem>);
+
+            return items.sort((a, b) => (+new Date(b.lastVisit)) - (+new Date(a.lastVisit)));
         } catch (ex) {
-            console.log("Parsing data from repo-history:", ex);
+            console.log("Parsing data from " + this.key + ":", ex);
         }
+        return [];
+    }
+
+    static deleteAll(): Array<RepoHistoryItem> {
+        localStorage.removeItem(this.key);
+
         return [];
     }
 
     static addEntry(entry: RepoHistoryItem): Array<RepoHistoryItem> {
         // Add this item to the top of the stack and remove older entries that match this repo
-        const items = [entry,
-            ...this.load().filter(e => e.repoName != entry.repoName && e.userName != entry.userName)
+        const items = [
+            entry,
+            ...this.deleteEntry(entry)
         ];
 
         localStorage.setItem(this.key, JSON.stringify(items));
@@ -25,7 +33,11 @@ export class RepoHistory {
     }
 
     static deleteEntry(entry: RepoHistoryItem): Array<RepoHistoryItem> {
-        const items = this.load().filter(e => e.repoName != entry.repoName && e.userName != entry.userName)
+        let items = this.load();
+
+        items = items.filter(e => {
+            return !(e.userName === entry.userName && e.repoName === entry.repoName)
+        })
 
         localStorage.setItem(this.key, JSON.stringify(items));
 

@@ -28,7 +28,7 @@
         <span class="help is-danger" v-if="usernameError">{{ usernameError }}</span>
         <span class="help is-danger mb-1 mt-0" v-if="releasesError">{{ releasesError }}</span>
 
-        <div class="buttons is-centered"  >
+        <div class="buttons is-centered">
             <button tabindex="-1" type="reset" @click.prevent="reset()" v-if="userName.trim() || repoName.trim()" class="button is-secondary">Clear</button>
             <button type="reset" v-else class="button is-secondary is-disabled" disabled>Clear</button>
 
@@ -43,9 +43,13 @@ import { RepoInfo } from '@/models/RepoInfo';
 import { Repository } from '@/models/Repository';
 import { Release } from '@/models/Release';
 
+export interface RepoInputInterface {
+    loadRepo(user: string, name: string): void;
+}
+
 export default defineComponent({
     name: 'RepoInput',
-    emits: ["repo-change"],
+    emits: ["repo-change", "interface"],
     data() {
         return {
             userRepos: [] as Array<Repository>,
@@ -53,10 +57,15 @@ export default defineComponent({
             releasesError: "",
             loading: false,
             releases: [] as Array<Release>,
-            ...RepoInfo.fromState(window.location.search, window.history.state)
+            ...RepoInfo.fromState(window.location.search, window.history.state),
         }
     },
     async mounted() {
+        // Emit our interface to make sure the app component can call this
+        this.$emit('interface', {
+            loadRepo: this.loadRepo
+        } as RepoInputInterface)
+
         // If the username is already filled in, we can directly fetch repo suggestions
         await this.loadUserRepos();
         // We can also already submit the form in case all data is filled in
@@ -66,6 +75,12 @@ export default defineComponent({
         window.onpopstate = this.handlePop;
     },
     methods: {
+        async loadRepo(user: string, name: string) {
+            this.userName = user;
+            this.repoName = name;
+            await this.onSubmit();
+            this.loadUserRepos();
+        },
         handlePop(event: PopStateEvent) {
             let info = RepoInfo.fromState("", event.state);
             if (info.userName && info.repoName) {

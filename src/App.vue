@@ -3,7 +3,7 @@
     <h3 class="title is-3 mb-1">GitHub Release Stats</h3>
     <p>This page summarizes stats from a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
     <div class="repo-input mt-4">
-      <RepoInput @repo-change="handleRepoChange" />
+      <RepoInput @repo-change="handleRepoChange" @interface="(i) => repoInterface = i" />
     </div>
 
     <template v-if="releases && releases.length === 0">
@@ -20,20 +20,32 @@
       </div>
     </template>
 
-    <template v-else-if="history.length > 0">
+    <div v-else-if="history.length > 0" class="history">
+      <hr>
+      <h4 class="title is-4 pt-4">History</h4>
       <!-- No releases to show, so show the history -->
-      <button @click.prevent="">TODO</button>
-    </template>
+      <div v-for="item in history" v-bind:key="item.userName + '/' + item.repoName" class="buttons field has-addons">
+        <a :href="historyURL(item)" @click.prevent="repoInterface?.loadRepo(item.userName, item.repoName)" class="control button is-expanded is-info">
+          {{ item.userName }}/{{ item.repoName }}
+        </a>
+        <div class="control button is-danger" @click.prevent="removeHistoryItem(item)">
+          X
+        </div>
+      </div>
+
+      <div class="button is-expanded is-danger mt-4" @click.prevent="removeAllHistory">Clear repository history</div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import RepoInput from '@/components/RepoInput.vue';
+import RepoInput, { RepoInputInterface } from '@/components/RepoInput.vue';
 import ReleaseCard from '@/components/ReleaseCard.vue';
 import ReleaseSummary from '@/components/ReleaseSummary.vue';
 import { Release } from '@/models/Release';
-import { RepoHistory } from './models/RepoHistory';
+import { RepoHistory, RepoHistoryItem } from './models/RepoHistory';
+import { RepoInfo } from './models/RepoInfo';
 
 
 export default defineComponent({
@@ -48,20 +60,31 @@ export default defineComponent({
       history: RepoHistory.load(),
       releases: null as Array<Release> | null,
       repoName: "" as string | undefined,
-      userName: "" as string | undefined
+      userName: "" as string | undefined,
+      repoInterface: null as RepoInputInterface | null
     }
   },
   methods: {
+    historyURL(item: RepoHistoryItem): string {
+      let ri = new RepoInfo(item.repoName, item.userName);
+      return RepoInfo.toURL(ri);
+    },
+    removeHistoryItem(item: RepoHistoryItem) {
+      this.history = RepoHistory.deleteEntry(item);
+    },
+    removeAllHistory() {
+      this.history = RepoHistory.deleteAll();
+    },
     handleRepoChange(evt: Array<Release> | null, userName: string | undefined, repoName: string | undefined) {
       this.releases = evt;
       this.userName = userName;
       this.repoName = repoName;
 
-      if (this.userName && this.repoName) {
+      if (this.$data.userName && this.$data.repoName) {
         this.history = RepoHistory.addEntry({
           lastVisit: new Date(),
-          repoName: this.repoName,
-          userName: this.userName,
+          repoName: this.$data.repoName,
+          userName: this.$data.userName,
         });
       }
     }
@@ -151,6 +174,11 @@ body {
   margin: 0 auto;
 }
 
+.history {
+  width: 80%;
+  margin: 0 auto;
+}
+
 @media only screen and (max-width: 1024px) {
   .stats-app {
     width: 100%;
@@ -159,7 +187,7 @@ body {
     padding-top: 5%;
   }
 
-  .repo-input {
+  .repo-input, .history {
     width: 100%
   }
 }
