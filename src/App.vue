@@ -50,7 +50,7 @@
 
     <!-- This one is only shown when the "noform" parameter is true, this is the loading animation for that mode -->
     <!-- TODO: When loading fails (e.g. 403), this will still show the loading animation -->
-    <button  class="button is-large is-loading is-primary">Loading...</button>
+    <button v-else class="button is-large is-loading is-primary">Loading...</button>
 
 
     <span class="help" v-if="showForm()">

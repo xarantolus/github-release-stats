@@ -46,6 +46,7 @@ import { defineComponent, PropType } from 'vue';
 import { RepoInfo } from '@/models/RepoInfo';
 import { Repository } from '@/models/Repository';
 import { Release } from '@/models/Release';
+import ago from 'ts-ago';
 
 export interface RepoInputInterface {
     loadRepo(user: string, name: string): void;
@@ -161,11 +162,24 @@ export default defineComponent({
 
             let resp = await fetch(`https://api.github.com/repos/${encodeURI(this.userName)}/${encodeURI(this.repoName)}/releases?per_page=100`);
             if (!resp.ok) {
-                this.releasesError = `Invalid status code ${resp.status} while fetching repository release info`;
+                this.releasesError = this.generateErrorMsg(resp, 'fetching repository release info');
                 return;
             }
 
             this.releases = await resp.json();
+        },
+        generateErrorMsg(resp: Response, during: string): string {
+            let nextTime = resp.headers.get('x-ratelimit-reset');
+            if (nextTime && resp.headers.get('x-ratelimit-remaining') == '0') {
+                let unixTime = parseInt(nextTime) * 1000;
+                let ts = new Date(unixTime);
+                let msDiff = Math.abs(+ts - +new Date());
+                if (msDiff < 120 * 1000) {
+                    return "Rate limit reached while " + during + ", try again in " + msDiff + " seconds";
+                }
+                return "Rate limit reached while " + during + ", try again " + ago(unixTime);
+            }
+            return `Invalid status code ${resp.status} while ` + during;
         },
         async loadUserRepos() {
             if (!this.userName) return;
@@ -175,7 +189,7 @@ export default defineComponent({
 
             let resp = await fetch(`https://api.github.com/users/${encodeURI(this.userName)}/repos?per_page=100`);
             if (!resp.ok) {
-                this.usernameError = `Invalid status code ${resp.status} while fetching user info`;
+                this.usernameError = this.generateErrorMsg(resp, 'fetching user info');
                 return;
             }
             this.userRepos = await resp.json();
