@@ -55,16 +55,19 @@ export default defineComponent({
         prettyBytes,
         formatDate(date: Date) {
             if (this.isToday(date)) {
-                return 'Today, ' + ago(date)
+                return `Today, ${this.formatTime(date)} (${ago(date)})`
             }
             if (this.isDaysAgo(date, 1)) {
-                return `Yesterday, ${date.getHours()}:${date.getMinutes()}`
+                return `Yesterday, ${this.formatTime(date)}`
             }
             if (this.isDaysAgo(date, 2)) {
                 return '2 days ago'
             }
 
             return ago(date) ?? date.toDateString();
+        },
+        formatTime(date: Date) {
+            return `${date.getHours()}:${date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()}`
         },
         isToday(date: Date): boolean {
             const today = new Date()
