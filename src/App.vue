@@ -33,12 +33,12 @@
         <a :href="historyURL(item)" @click.prevent="repoInterface?.loadRepo(item.userName, item.repoName)" class="control button is-expanded is-info is-outlined has-text-weight-bold">
           {{ item.userName }}/{{ item.repoName }}
         </a>
-        <div class="control button is-danger" @click.prevent="removeHistoryItem(item)">
+        <button class="control button is-danger delete-button" @click.prevent="removeHistoryItem(item)">
           X
-        </div>
+        </button>
       </div>
 
-      <div class="button is-expanded is-danger mt-4" @click.prevent="removeAllHistory">Clear repository history</div>
+      <button class="button is-expanded is-danger mt-4 delete-button" @click.prevent="removeAllHistory">Clear repository history</button>
     </div>
 
     <template v-else-if="showForm()">
@@ -144,6 +144,7 @@ export default defineComponent({
   --card-color: #fff;
   --card-hover-color: #ddd;
   --button-color: #bbb;
+  --red-focus: #b80000;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -157,6 +158,7 @@ export default defineComponent({
     --card-color: #222;
     --card-hover-color: #444;
     --button-color: #333;
+    --red-focus: #c70000;
   }
 
   /* Some additional color fixes */
@@ -218,6 +220,10 @@ body {
 
 .hidden {
   display: none;
+}
+
+.delete-button:focus {
+  background-color: var(--red-focus);
 }
 
 @media only screen and (max-width: 1024px) {

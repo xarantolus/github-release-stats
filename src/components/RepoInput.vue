@@ -2,7 +2,7 @@
     <form class="form" @submit.prevent="onSubmit()" target="#">
         <div class="field has-addons">
             <div class="control">
-                <div class="button is-info">
+                <div class="button is-static is-info">
                     Username
                 </div>
             </div>
@@ -16,7 +16,7 @@
 
         <div class="field has-addons">
             <div class="control">
-                <div class="button is-info">
+                <div class="button is-static is-info">
                     Repository
                 </div>
             </div>
@@ -210,5 +210,15 @@ export default defineComponent({
 <style>
 .card-content {
     padding: 1rem !important;
+}
+
+.button.is-static {
+    width: 120px;
+}
+
+@media only screen and (max-width: 1024px) {
+    .button.is-static {
+        width: 100px;
+    }
 }
 </style>
