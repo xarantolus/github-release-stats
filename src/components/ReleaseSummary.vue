@@ -13,7 +13,7 @@
                         {{ releases.length == 1 ? 'One release' : (releases.length + ' releases') }} loaded
                     </li>
                     <li v-if="releases.some(r => r.assets.length > 0)">
-                        {{ totalDownloads() }} total downloads
+                        {{ totalDownloads() }} total downloads {{ agoTextWithoutAgo(oldestDate()) }}
                     </li>
                 </ul>
             </div>
@@ -32,6 +32,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Release } from '@/models/Release';
+import ago from 'ts-ago';
 
 export default defineComponent({
     name: 'ReleaseSummary',
@@ -50,10 +51,25 @@ export default defineComponent({
         },
     },
     methods: {
+        ago: ago,
+        agoTextWithoutAgo(date: Date): string {
+            let str = ago(date);
+            if (!str || str == "just now") {
+                return "";
+            }
+            const agoText = 'ago';
+            if (str.endsWith(agoText)) {
+                str = str.substring(0, str.length - agoText.length)
+            }
+            return "within " + str.trim();
+        },
         totalDownloads(): number {
             return this.releases.map(r => {
                 return r.assets.map(a => a.download_count).reduce((a, b) => a + b, 0)
             }).reduce((a, b) => a + b, 0)
+        },
+        oldestDate(): Date {
+            return new Date(Math.min.apply(null, this.releases.map(r => +new Date(r.published_at))));
         },
         // allReleasesHaveAllAssets returns whether all releases have all assets
         allReleasesHaveAllAssets(): boolean {
