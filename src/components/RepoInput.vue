@@ -2,7 +2,7 @@
     <form class="form" @submit.prevent="onSubmit()" target="#">
         <div class="field has-addons">
             <div class="control">
-                <div class="button is-static is-info">
+                <div class="button is-info input-label">
                     Username
                 </div>
             </div>
@@ -16,7 +16,7 @@
 
         <div class="field has-addons">
             <div class="control">
-                <div class="button is-static is-info">
+                <div class="button is-info input-label">
                     Repository
                 </div>
             </div>
@@ -212,12 +212,12 @@ export default defineComponent({
     padding: 1rem !important;
 }
 
-.button.is-static {
+.input-label {
     width: 120px;
 }
 
 @media only screen and (max-width: 1024px) {
-    .button.is-static {
+    .input-label {
         width: 100px;
     }
 }
