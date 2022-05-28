@@ -2,19 +2,23 @@
   <div class="stats-app">
     <h3 class="title is-3 mb-1">GitHub Release Stats</h3>
 
-    <p v-if="showForm()">This page summarizes stats for a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
+    <!-- We only show the input form if we don't have "noshow" in the search part of the URl -->
+    <template v-if="showForm()">
+      <p>This page summarizes stats for a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
 
-    <div :class="{ hidden: !showForm() }" class="repo-input mt-4">
-      <!-- We only show the input form if we don't have "noshow" in the search part of the URl -->
-      <RepoInput @repo-change="handleRepoChange" :username-suggestions="usernameSuggestions()" @interface="(i) => repoInterface = i" />
-    </div>
+      <div class="repo-input mt-4">
+        <RepoInput @submit="loadRepo" :username-suggestions="usernameSuggestions()" :loading="loading" :initial-user-name="userName" :initial-repo-name="repoName" />
+      </div>
+    </template>
 
-    <template v-if="releases && releases.length === 0">
+    <template v-if="!loading && releases && releases.length === 0">
       <!-- No releases to show, but everything worked -->
       <p class="mt-5 title is-5 has-text-danger has-text-weight-bold">No releases available for&nbsp;
         <a :href="'https://github.com/' + encodeURI(userName!) + '/' + encodeURI(repoName!)" target="_blank">{{ userName }}/{{ repoName }}</a>.
       </p>
     </template>
+
+    <button v-else-if="loading && !showForm()" class="button is-large is-loading is-primary">Loading...</button>
 
     <template v-else-if="releases && releases.length > 0">
       <!-- We have releases we can show, everything worked -->
@@ -25,12 +29,19 @@
       </div>
     </template>
 
-    <div v-else-if="showForm() && history.length > 0" class="history">
+    <template v-else-if="errorMessage">
+      <p class="mt-5 title is-5 has-text-danger has-text-weight-bold">Error while loading releases for&nbsp;
+        <a :href="'https://github.com/' + encodeURI(userName!) + '/' + encodeURI(repoName!)" target="_blank">{{ userName }}/{{ repoName }}</a>:
+        {{ errorMessage }}
+      </p>
+    </template>
+
+    <div v-if="showForm() && history.length > 0" class="history">
       <!-- No releases to show, so show the history -->
       <hr>
       <h4 class="title is-4 pt-4">History</h4>
       <div v-for="item in history" v-bind:key="item.userName + '/' + item.repoName" class="buttons field has-addons mb-0">
-        <a :href="historyURL(item)" @click.prevent="repoInterface?.loadRepo(item.userName, item.repoName)" class="control button is-expanded is-info is-outlined has-text-weight-bold">
+        <a :href="historyURL(item)" @click.prevent="loadRepo(item.userName, item.repoName)" class="control button is-expanded is-info is-outlined has-text-weight-bold">
           {{ item.userName }}/{{ item.repoName }}
         </a>
         <button class="control button is-danger delete-button" @click.prevent="removeHistoryItem(item)">
@@ -44,32 +55,29 @@
     <template v-else-if="showForm()">
       <!-- A small example to see how the page works -->
       <p class="mt-4">Not sure what you're looking for?
-        <a href="/?user=xarantolus&repo=filtrite" @click.prevent="repoInterface?.loadRepo('xarantolus', 'filtrite')">Click here to try one of my repos</a>.
+        <a href="/?user=xarantolus&repo=filtrite" @click.prevent="loadRepo('xarantolus', 'filtrite')">Click here to try one of my repos</a>.
       </p>
     </template>
-
-    <!-- This one is only shown when the "noform" parameter is true, this is the loading animation for that mode -->
-    <!-- TODO: When loading fails (e.g. 403), this will still show the loading animation -->
-    <button v-else class="button is-large is-loading is-primary">Loading...</button>
-
 
     <span class="help" v-if="showForm()">
       If you want to link to releases without showing the input above, you can add the <code>noform</code> URL parameter.
     </span>
     <span class="help" v-else>
-      The current page shows stats for {{ userName }}/{{ repoName }}, visit the <a @click.prevent="repoInterface?.reset()" href="/">main page</a> to find stats for other repositories.
+      The current page shows stats for {{ userName }}/{{ repoName }}, visit the <a @click.prevent="reset()" href="/">main page</a> to find stats for other repositories.
     </span>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import RepoInput, { RepoInputInterface } from '@/components/RepoInput.vue';
+import RepoInput from '@/components/RepoInput.vue';
 import ReleaseCard from '@/components/ReleaseCard.vue';
 import ReleaseSummary from '@/components/ReleaseSummary.vue';
 import { Release } from '@/models/Release';
 import { RepoHistory, RepoHistoryItem } from './models/RepoHistory';
 import { RepoInfo } from './models/RepoInfo';
+import { loadAllReleases } from '@/util/octo_pagination';
+import { Octokit, App } from "octokit";
 
 const appTitle = "GitHub Release Stats"
 
@@ -82,16 +90,61 @@ export default defineComponent({
   },
   data() {
     return {
+      loading: false as boolean,
+      errorMessage: "" as string,
+
       history: RepoHistory.load(),
       releases: null as Array<Release> | null,
+
       repoName: "" as string | undefined,
       userName: "" as string | undefined,
-      repoInterface: null as RepoInputInterface | null
+
+      githubAPI: new Octokit(),
     }
   },
   methods: {
+    async loadRepo(user: string, name: string) {
+      this.userName = user;
+      this.repoName = name;
+
+      this.releases = [];
+      this.loading = true;
+
+      let addedToHistory = false;
+      const setReleases = (r: Release[]) => {
+        if (!addedToHistory) {
+          addedToHistory = true;
+          this.history = RepoHistory.addEntry({
+            lastVisit: new Date(),
+            userName: user,
+            repoName: name,
+          });
+          document.title = `${this.userName}/${this.repoName} | ${appTitle}`;
+        }
+
+        this.releases = r;
+      }
+
+      try {
+        this.releases = await loadAllReleases(
+          this.githubAPI, user, name,
+          setReleases);
+      } catch (e) {
+        this.errorMessage = String(e);
+        this.releases = null;
+      } finally {
+        this.loading = false;
+      }
+    },
+    reset() {
+      this.loading = false;
+      this.errorMessage = "";
+
+      this.releases = null;
+      this.repoName = this.userName = "";
+    },
     showForm(): boolean {
-      return !window.location.search.includes('noform');
+      return !window.location.search.includes("noform");
     },
     usernameSuggestions(): Array<string> {
       let users = this.history.map(i => i.userName);
@@ -108,23 +161,6 @@ export default defineComponent({
     removeAllHistory() {
       this.history = RepoHistory.deleteAll();
     },
-    handleRepoChange(evt: Array<Release> | null, userName: string | undefined, repoName: string | undefined) {
-      this.releases = evt;
-      this.userName = userName;
-      this.repoName = repoName;
-
-      if (this.$data.userName && this.$data.repoName) {
-        this.history = RepoHistory.addEntry({
-          lastVisit: new Date(),
-          repoName: this.$data.repoName,
-          userName: this.$data.userName,
-        });
-
-        document.title = `${this.userName}/${this.repoName} | ${appTitle}`;
-      } else {
-        document.title = appTitle;
-      }
-    }
   }
 });
 </script>
