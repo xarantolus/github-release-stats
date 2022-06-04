@@ -7,7 +7,7 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input autofocus class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username" list="user-suggestions">
+                <input :disabled="isDisabled" autofocus class="input" @input="userRepos = []; releases = []" :class="usernameError ? 'is-danger' : ((userRepos.length > 0 && userName.trim()) ? 'is-success' : '')" type="text" @blur.prevent="loadUserRepos()" v-model="userName" placeholder="GitHub username" list="user-suggestions">
                 <datalist id="user-suggestions">
                     <option v-for="user in (usernameSuggestions ?? [])" v-bind:key="user" :value="user" />
                 </datalist>
@@ -21,7 +21,7 @@
                 </div>
             </div>
             <div class="control is-expanded">
-                <input class="input" @input="releases = []" :class="releasesError ? 'is-danger' : ((releases.length > 0 && userName.trim()) ? 'is-success' : '')" @blur.prevent="onSubmit()" v-model="repoName" placeholder="Repository name" list="repo-suggestions" />
+                <input :disabled="isDisabled" class="input" @input="releases = []" :class="releasesError ? 'is-danger' : ((releases.length > 0 && userName.trim()) ? 'is-success' : '')" @blur.prevent="onSubmit()" v-model="repoName" placeholder="Repository name" list="repo-suggestions" />
                 <datalist id="repo-suggestions">
                     <option v-for="repo in userRepos" v-bind:key="repo.id" :value="repo.name" />
                 </datalist>
@@ -35,8 +35,7 @@
             <button tabindex="-1" type="reset" @click.prevent="reset()" v-if="!loading && (userName.trim() || repoName.trim())" class="button is-secondary">Clear</button>
             <button type="reset" v-else class="button is-secondary is-disabled" disabled>Clear</button>
 
-            <button v-if="!userName.trim() || !repoName.trim()" disabled class="button is-primary is-disabled" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
-            <button v-else class="button is-primary" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
+            <button :disabled="!userName.trim() || !repoName.trim()" class="button is-primary is-disabled" :class="loading ? 'is-loading' : ''" type="submit">Show release stats</button>
         </div>
     </form>
 </template>
@@ -58,6 +57,7 @@ export default defineComponent({
     emits: ["repo-change", "interface"],
     props: {
         usernameSuggestions: Array as PropType<string[]>,
+        disabled: Boolean,
     },
     data() {
         return {
@@ -68,6 +68,7 @@ export default defineComponent({
             releases: [] as Array<Release>,
             scheduledNextLoad: null as RepoInfo | null,
             ...RepoInfo.fromState(window.location.search, window.history.state),
+            isDisabled: this.disabled ?? false,
         }
     },
     async mounted() {
@@ -103,6 +104,7 @@ export default defineComponent({
             }
         },
         reset(goingBack?: boolean | undefined) {
+            this.isDisabled = false;
             this.userName = this.repoName = "";
             this.userRepos = [];
             this.usernameError = this.releasesError = "";

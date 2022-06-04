@@ -4,9 +4,8 @@
 
     <p v-if="showForm()">This page summarizes stats for a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
 
-    <div :class="{ hidden: !showForm() }" class="repo-input mt-4">
-      <!-- We only show the input form if we don't have "noshow" in the search part of the URl -->
-      <RepoInput @repo-change="handleRepoChange" :username-suggestions="usernameSuggestions()" @interface="(i) => repoInterface = i" />
+    <div class="repo-input mt-4">
+      <RepoInput :disabled="!showForm()"  @repo-change="handleRepoChange" :username-suggestions="usernameSuggestions()" @interface="(i) => repoInterface = i" />
     </div>
 
     <template v-if="releases && releases.length === 0">
@@ -48,15 +47,10 @@
       </p>
     </template>
 
-    <!-- This one is only shown when the "noform" parameter is true, this is the loading animation for that mode -->
-    <!-- TODO: When loading fails (e.g. 403), this will still show the loading animation -->
-    <button v-else class="button is-large is-loading is-primary">Loading...</button>
-
-
     <span class="help" v-if="showForm()">
       If you want to link to releases without showing the input above, you can add the <code>noform</code> URL parameter.
     </span>
-    <span class="help" v-else>
+    <span class="help" v-else-if="repoName && userName">
       The current page shows stats for {{ userName }}/{{ repoName }}, visit the <a @click.prevent="repoInterface?.reset()" href="/">main page</a> to find stats for other repositories.
     </span>
   </div>
