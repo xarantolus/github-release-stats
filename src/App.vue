@@ -5,7 +5,7 @@
     <p v-if="showForm()">This page summarizes stats for a GitHub repository. Feel free to <a target="_blank" href="https://github.com/xarantolus/github-release-stats">check it out on GitHub</a>.</p>
 
     <div class="repo-input mt-4">
-      <RepoInput :disabled="!showForm()"  @repo-change="handleRepoChange" :username-suggestions="usernameSuggestions()" @interface="(i) => repoInterface = i" />
+      <RepoInput :disabled="!showForm()" @repo-change="handleRepoChange" :username-suggestions="usernameSuggestions()" @interface="(i) => repoInterface = i" />
     </div>
 
     <template v-if="releases && releases.length === 0">
@@ -49,6 +49,12 @@
 
     <span class="help" v-if="showForm()">
       If you want to link to releases without showing the input above, you can add the <code>noform</code> URL parameter.
+      <template v-if="repoName && userName">
+        You can also <span @click.prevent="copyBadge()" class="has-text-weight-bold is-underlined is-clickable">
+          <template v-if="copying">Copied!</template>
+          <template v-else>create a badge</template>
+        </span> for your README file.
+      </template>
     </span>
     <span class="help" v-else-if="repoName && userName">
       The current page shows stats for {{ userName }}/{{ repoName }}, visit the <a @click.prevent="repoInterface?.reset()" href="/">main page</a> to find stats for other repositories.
@@ -80,7 +86,8 @@ export default defineComponent({
       releases: null as Array<Release> | null,
       repoName: "" as string | undefined,
       userName: "" as string | undefined,
-      repoInterface: null as RepoInputInterface | null
+      repoInterface: null as RepoInputInterface | null,
+      copying: false,
     }
   },
   methods: {
@@ -101,6 +108,21 @@ export default defineComponent({
     },
     removeAllHistory() {
       this.history = RepoHistory.deleteAll();
+    },
+    async copyBadge() {
+      if (this.userName && this.repoName) {
+        let host = location.protocol + "//" + location.host;
+        let text = `[![Release Stats](${host}/badge.svg)](${host}/?user=${encodeURIComponent(this.userName)}&repo=${encodeURIComponent(this.repoName)})`;
+
+        try {
+          this.copying = true;
+          await navigator.clipboard.writeText(text);
+        } finally {
+          setTimeout(() => {
+            this.copying = false;
+          }, 750);
+        }
+      }
     },
     handleRepoChange(evt: Array<Release> | null, userName: string | undefined, repoName: string | undefined) {
       this.releases = evt;
