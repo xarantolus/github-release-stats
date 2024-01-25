@@ -19,16 +19,16 @@
                             {{ formatDate(new Date(release.published_at)) }}
                         </time>
                     </li>
-                    <li v-if="release.assets.length > 0">
+                    <li v-if="assets.length > 0">
                         Total downloads:
-                        {{ release.assets.map(a => a.download_count).reduce((a, b) => a + b, 0) }}
+                        {{ assets.map(a => a.download_count).reduce((a, b) => a + b, 0) }}
                     </li>
                 </ul>
             </div>
-            <div class="content has-text-left asset-info" v-if="release.assets.length > 0">
+            <div class="content has-text-left asset-info" v-if="assets.length > 0">
                 <h6 class="title is-6 mb-0">Assets</h6>
                 <ul class="mt-1">
-                    <li v-for="asset in release.assets" v-bind:key="asset.id">
+                    <li v-for="asset in assets" v-bind:key="asset.id">
                         <a :href="asset.browser_download_url" target="_blank"><code>{{ asset.name }}</code></a>: {{ asset.download_count }} downloads, {{ prettyBytes(asset.size) }}
                     </li>
                 </ul>
@@ -49,6 +49,13 @@ export default defineComponent({
         release: {
             type: Object as PropType<Release>,
             required: true
+        }
+    },
+    setup(props, ctx) {
+        // Sort assets by download count, without modifying the original array
+        let assets = [...props.release.assets].sort((a, b) => b.download_count - a.download_count);
+        return {
+            assets,
         }
     },
     methods: {
